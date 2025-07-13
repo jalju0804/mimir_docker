@@ -24,13 +24,13 @@ mkdir -p config logs
 # 권한 확인 (ICMP 프로브를 위해 필요)
 if [ "$EUID" -ne 0 ]; then
     echo "⚠️  ICMP 프로브를 위해 sudo 권한이 필요할 수 있습니다."
-    echo "   sudo docker-compose -f worker-node-docker-compose.yml up -d"
+    echo "   sudo docker-compose up -d"
     exit 1
 fi
 
 # 기존 컨테이너 정리
 echo "🧹 기존 컨테이너 정리..."
-docker-compose -f worker-node-docker-compose.yml down
+docker-compose down
 
 # 환경 변수 로드
 set -a
@@ -43,7 +43,7 @@ echo "   - 중앙 Mimir URL: $CENTRAL_MIMIR_URL"
 
 # 컨테이너 시작
 echo "🔄 컨테이너 시작 중..."
-docker-compose -f worker-node-docker-compose.yml up -d
+docker-compose up -d
 
 # 헬스체크 대기
 echo "⏳ 서비스 시작 대기 중..."
@@ -51,7 +51,7 @@ sleep 10
 
 # 상태 확인
 echo "📋 컨테이너 상태 확인:"
-docker-compose -f worker-node-docker-compose.yml ps
+docker-compose ps
 
 # 연결 테스트
 echo "🔍 연결 테스트:"
@@ -69,9 +69,9 @@ echo "   - RabbitMQ Management: http://localhost:15672 (admin/admin123)"
 # 로그 확인 옵션
 echo ""
 echo "📝 로그 확인:"
-echo "   docker-compose -f worker-node-docker-compose.yml logs -f prometheus-agent"
+echo "   docker-compose logs -f prometheus-agent"
 echo ""
 echo "🛑 중지:"
-echo "   docker-compose -f worker-node-docker-compose.yml down"
+echo "   docker-compose down"
 
 echo "✅ 워커 노드 모니터링이 시작되었습니다!" 

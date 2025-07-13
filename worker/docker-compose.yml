@@ -61,7 +61,7 @@ services:
       - '--web.enable-lifecycle'
       - '--log.level=warn'
     volumes:
-      - ./config/worker-prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - worker-prometheus-data:/prometheus
     ports:
       - "9090:9090"
