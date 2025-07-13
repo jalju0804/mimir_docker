@@ -31,12 +31,9 @@ vi worker-node.env
 - `WORKER_NODE_NAME`: 워커 노드 이름 (예: worker-node-1)
 - `CENTRAL_MIMIR_URL`: 중앙 노드 URL (예: http://192.168.1.100:9009)
 
-### 2. 실행 (자동화 스크립트)
+### 2. 실행 (자동화 스크립트 권장)
 ```bash
-# 실행 권한 부여
-chmod +x run-worker-node.sh
-
-# 실행
+# 자동화 스크립트 사용
 sudo ./run-worker-node.sh
 ```
 

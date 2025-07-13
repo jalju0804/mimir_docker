@@ -30,6 +30,7 @@
 mimir/
 ├── master/                    # 🏗️ 마스터 노드 (중앙 모니터링)
 │   ├── docker-compose.yml     # 중앙 모니터링 인프라
+│   ├── run-master.sh          # 마스터 노드 실행 스크립트
 │   ├── config/                # 마스터 노드 설정
 │   │   ├── prometheus.yaml    # 중앙 노드 자체 모니터링
 │   │   ├── mimir.yaml         # Mimir 클러스터 설정
@@ -58,6 +59,11 @@ mimir/
 ### 1. 마스터 노드 실행
 ```bash
 cd master
+
+# 자동화 스크립트 사용 (권장)
+./run-master.sh
+
+# 또는 수동 실행
 docker-compose up -d
 ```
 
@@ -69,9 +75,11 @@ cd worker
 cp worker-node.env.example worker-node.env
 vi worker-node.env  # WORKER_NODE_NAME, CENTRAL_MIMIR_URL 설정
 
-# 실행
-chmod +x run-worker-node.sh
+# 자동화 스크립트 사용 (권장)
 sudo ./run-worker-node.sh
+
+# 또는 수동 실행
+docker-compose up -d
 ```
 
 ### 3. 모니터링 확인
