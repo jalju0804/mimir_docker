@@ -1,0 +1,252 @@
+version: "3.4"
+
+services:
+  # 시스템 메트릭 수집
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: worker-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/var/lib/node_exporter/textfile_collector'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+      - node-exporter-textfile:/var/lib/node_exporter/textfile_collector
+    ports:
+      - "9100:9100"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 컨테이너 메트릭 수집
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: worker-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    devices:
+      - /dev/kmsg
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Prometheus Agent - 메트릭 수집 및 중앙으로 push
+  prometheus-agent:
+    image: prom/prometheus:latest
+    container_name: worker-prometheus-agent
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=2h'
+      - '--storage.tsdb.wal-compression'
+      - '--web.listen-address=:9090'
+      - '--web.enable-lifecycle'
+      - '--log.level=warn'
+    volumes:
+      - ./config/worker-prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - worker-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - node-exporter
+      - cadvisor
+      - blackbox-exporter
+      - mysql-exporter
+      - rabbitmq-exporter
+      - libvirt-exporter
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      - WORKER_NODE_NAME=${WORKER_NODE_NAME:-worker-node-1}
+      - CENTRAL_MIMIR_URL=${CENTRAL_MIMIR_URL:-http://your-central-node:9009}
+
+  # 선택사항: 프로세스 모니터링
+  process-exporter:
+    image: ncabatoff/process-exporter:latest
+    container_name: worker-process-exporter
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - ./config/process-exporter.yml:/config/process-exporter.yml:ro
+    ports:
+      - "9256:9256"
+    command:
+      - '--config.path=/config/process-exporter.yml'
+      - '--web.listen-address=:9256'
+    pid: host
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9256/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 블랙박스 exporter - 외부 서비스 모니터링
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: worker-blackbox-exporter
+    restart: unless-stopped
+    volumes:
+      - ./config/blackbox.yml:/config/blackbox.yml:ro
+    ports:
+      - "9115:9115"
+    command:
+      - '--config.file=/config/blackbox.yml'
+      - '--web.listen-address=:9115'
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9115/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0
+    container_name: worker-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=testdb
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=testpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - worker-mysql-data:/var/lib/mysql
+      - ./config/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # MySQL 메트릭 수집
+  mysql-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: worker-mysql-exporter
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    volumes:
+      - ./mysql-exporter/my.cnf:/etc/mysql/my.cnf:ro
+    command:
+      - '--config.my-cnf=/etc/mysql/my.cnf'
+      - '--web.listen-address=:9104'
+      - '--collect.global_status'
+      - '--collect.info_schema.innodb_metrics'
+      - '--collect.auto_increment.columns'
+      - '--collect.info_schema.processlist'
+      - '--collect.binlog_size'
+      - '--collect.info_schema.tablestats'
+      - '--collect.global_variables'
+      - '--collect.info_schema.query_response_time'
+      - '--collect.info_schema.userstats'
+      - '--collect.info_schema.tables'
+      - '--collect.perf_schema.tablelocks'
+      - '--collect.perf_schema.file_events'
+      - '--collect.perf_schema.eventswaits'
+      - '--collect.perf_schema.indexiowaits'
+      - '--collect.perf_schema.tableiowaits'
+      - '--collect.slave_status'
+    ports:
+      - "9104:9104"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9104/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # RabbitMQ 메시지 브로커
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: worker-rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - worker-rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # RabbitMQ 메트릭 수집
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:latest
+    container_name: worker-rabbitmq-exporter
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBIT_URL=http://rabbitmq:15672
+      - RABBIT_USER=admin
+      - RABBIT_PASSWORD=admin123
+      - PUBLISH_PORT=9419
+    ports:
+      - "9419:9419"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9419/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Libvirt 가상화 메트릭 수집
+  libvirt-exporter:
+    image: alekseizakharov/libvirt-exporter:latest
+    container_name: worker-libvirt-exporter
+    restart: unless-stopped
+    volumes:
+      - /var/run/libvirt/:/var/run/libvirt/:ro
+    ports:
+      - "9177:9177"
+    environment:
+      - LIBVIRT_DEFAULT_URI=qemu:///system
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9177/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  worker-prometheus-data:
+  node-exporter-textfile:
+  worker-mysql-data:
+  worker-rabbitmq-data:
+
+networks:
+  default:
+    driver: bridge 

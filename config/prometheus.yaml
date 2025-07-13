@@ -8,6 +8,7 @@ rule_files:
   - /etc/prometheus/rules.yaml
 
 scrape_configs:
+  # Mimir 클러스터 자체 모니터링
   - job_name: demo/mimir
     static_configs:
       - targets: ["mimir-1:8080"]
@@ -19,6 +20,21 @@ scrape_configs:
       - targets: ["mimir-3:8080"]
         labels:
           pod: "mimir-3"
+          
+  # 중앙 노드 자체 모니터링 (모니터링 인프라만)
+  - job_name: 'central-node/system'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'central-node'
+          service: 'node-exporter'
+          
+  - job_name: 'central-node/containers'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          instance: 'central-node'
+          service: 'cadvisor'
 
 remote_write:
   - url: http://load-balancer:9009/api/v1/push

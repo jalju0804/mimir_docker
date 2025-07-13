@@ -1,0 +1,126 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "demo"
+    node: "${WORKER_NODE_NAME}"
+    instance: "${WORKER_NODE_NAME}"
+
+scrape_configs:
+  # 시스템 메트릭 수집
+  - job_name: 'worker-node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+    scrape_interval: 15s
+    
+  # 컨테이너 메트릭 수집
+  - job_name: 'worker-cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+    scrape_interval: 15s
+    
+  # 프로세스 메트릭 수집
+  - job_name: 'worker-process-exporter'
+    static_configs:
+      - targets: ['process-exporter:9256']
+        labels:
+          service: 'process-exporter'
+    scrape_interval: 30s
+    
+  # MySQL 메트릭 수집
+  - job_name: 'worker-mysql-exporter'
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+        labels:
+          service: 'mysql-exporter'
+    scrape_interval: 30s
+    
+  # RabbitMQ 메트릭 수집
+  - job_name: 'worker-rabbitmq-exporter'
+    static_configs:
+      - targets: ['rabbitmq-exporter:9419']
+        labels:
+          service: 'rabbitmq-exporter'
+    scrape_interval: 30s
+    
+  # Libvirt 메트릭 수집
+  - job_name: 'worker-libvirt-exporter'
+    static_configs:
+      - targets: ['libvirt-exporter:9177']
+        labels:
+          service: 'libvirt-exporter'
+    scrape_interval: 30s
+    
+  # 블랙박스 HTTP/HTTPS 모니터링
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://google.com
+          - https://github.com
+          - http://localhost:9100/metrics  # 로컬 node-exporter 헬스체크
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+        
+  # 블랙박스 ICMP 모니터링 (핑 테스트)
+  - job_name: 'blackbox-icmp'
+    metrics_path: /probe
+    params:
+      module: [icmp]
+    static_configs:
+      - targets:
+          - 8.8.8.8
+          - 1.1.1.1
+          - google.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+        
+  # 블랙박스 TCP 포트 모니터링
+  - job_name: 'blackbox-tcp'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - google.com:443
+          - github.com:443
+          - localhost:22
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+# 중앙 Mimir로 메트릭 push
+remote_write:
+  - url: "${CENTRAL_MIMIR_URL}/api/v1/push"
+    headers:
+      X-Scope-OrgID: demo
+    queue_config:
+      max_samples_per_send: 1000
+      batch_send_deadline: 10s
+      max_retries: 3
+      min_backoff: 1s
+      max_backoff: 30s
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'prometheus_.*'
+        action: drop  # Prometheus 자체 메트릭은 제외 

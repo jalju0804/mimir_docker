@@ -1,0 +1,78 @@
+process_names:
+  # Docker 관련 프로세스
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'dockerd'
+      - 'docker-proxy'
+      - 'containerd'
+      - 'containerd-shim'
+      - 'runc'
+    
+  # 시스템 핵심 프로세스
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'systemd'
+      - 'kernel'
+      - 'kthreadd'
+      - 'init'
+      - 'NetworkManager'
+      - 'sshd'
+      - 'chronyd'
+      - 'rsyslog'
+      
+  # 웹 서버 프로세스
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'nginx'
+      - 'apache2'
+      - 'httpd'
+      
+  # 데이터베이스 프로세스
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'mysql'
+      - 'mysqld'
+      - 'postgres'
+      - 'redis-server'
+      - 'mongod'
+      
+  # 모니터링 관련 프로세스
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'prometheus'
+      - 'node_exporter'
+      - 'cadvisor'
+      - 'blackbox_exporter'
+      - 'process-exporter'
+      
+  # 기타 중요 프로세스들
+  - name: "{{.Comm}}"
+    cmdline:
+      - 'java'
+      - 'python'
+      - 'node'
+      - 'python3'
+      - 'go'
+      
+  # 프로세스 그룹화 예시
+  - name: "database"
+    cmdline:
+      - 'mysql'
+      - 'postgres'
+      - 'redis-server'
+      - 'mongod'
+      
+  - name: "webserver"
+    cmdline:
+      - 'nginx'
+      - 'apache2'
+      - 'httpd'
+      
+  - name: "monitoring"
+    cmdline:
+      - 'prometheus'
+      - 'node_exporter'
+      - 'cadvisor'
+      - 'blackbox_exporter'
+      - 'process-exporter'
+      - 'grafana-server' 

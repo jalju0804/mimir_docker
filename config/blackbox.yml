@@ -1,0 +1,110 @@
+modules:
+  # HTTP/HTTPS 2xx 응답 확인
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 201, 202, 204, 206, 300, 301, 302, 304, 307, 308]
+      method: GET
+      headers:
+        Host: localhost
+        Accept-Language: en-US
+        User-Agent: blackbox-exporter
+      no_follow_redirects: false
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  # HTTPS 전용 체크 (SSL 필수)
+  http_2xx_https:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 201, 202, 204, 206, 300, 301, 302, 304, 307, 308]
+      method: GET
+      fail_if_not_ssl: true
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: "ip4"
+
+  # HTTP POST 요청 테스트
+  http_post_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 201, 202, 204, 206, 300, 301, 302, 304, 307, 308]
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"test": "data"}'
+
+  # TCP 연결 테스트
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  # ICMP 핑 테스트
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
+      source_ip_address: ""
+      payload_size: 56
+      ttl: 64
+      dont_fragment: false
+
+  # DNS 조회 테스트
+  dns_udp:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: "google.com"
+      query_type: "A"
+      valid_rcodes:
+        - NOERROR
+      validate_answer_rrs:
+        fail_if_matches_regexp: []
+        fail_if_not_matches_regexp: []
+      validate_authority_rrs:
+        fail_if_matches_regexp: []
+        fail_if_not_matches_regexp: []
+      validate_additional_rrs:
+        fail_if_matches_regexp: []
+        fail_if_not_matches_regexp: []
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  # GRPC 헬스체크
+  grpc:
+    prober: grpc
+    timeout: 5s
+    grpc:
+      service: ""
+      tls: false
+      tls_config:
+        insecure_skip_verify: false
+
+  # 커스텀 헬스체크 (JSON 응답 확인)
+  http_json_health:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Content-Type: application/json
+      fail_if_body_not_matches_regexp:
+        - '"status":\s*"ok"'
+      fail_if_body_matches_regexp:
+        - '"status":\s*"error"' 
