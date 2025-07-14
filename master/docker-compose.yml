@@ -160,6 +160,7 @@ services:
       - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
+      - ./config/runtime.yaml:/etc/mimir/runtime.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-1-data:/data
@@ -182,6 +183,7 @@ services:
       - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
+      - ./config/runtime.yaml:/etc/mimir/runtime.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-2-data:/data
@@ -204,6 +206,7 @@ services:
       - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
+      - ./config/runtime.yaml:/etc/mimir/runtime.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-3-data:/data

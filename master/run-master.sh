@@ -97,3 +97,4 @@ if [ ! -z "$LOCAL_IP" ]; then
 else
     echo "   워커 노드 연결 URL: http://[이_서버의_IP]:9009"
 fi
+ 
