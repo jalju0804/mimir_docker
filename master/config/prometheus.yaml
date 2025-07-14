@@ -8,7 +8,6 @@ rule_files:
   - /etc/prometheus/rules.yaml
 
 scrape_configs:
-  # Mimir 클러스터 자체 모니터링
   - job_name: demo/mimir
     static_configs:
       - targets: ["mimir-1:8080"]
@@ -21,7 +20,6 @@ scrape_configs:
         labels:
           pod: "mimir-3"
           
-  # 중앙 노드 자체 모니터링 (모니터링 인프라만)
   - job_name: 'central-node/system'
     static_configs:
       - targets: ['node-exporter:9100']
@@ -38,7 +36,5 @@ scrape_configs:
 
 remote_write:
   - url: http://load-balancer:9009/api/v1/push
-    # Add X-Scope-OrgID header so that Mimir knows what tenant the remote write data should be stored in.
-    # In this case, our tenant is "demo"
     headers:
-      X-Scope-OrgID: demo
+      X-Scope-OrgID: monitoring

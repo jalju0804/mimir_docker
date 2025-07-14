@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # OpenStack 워커 Prometheus
+  openstack-worker-prometheus:
+    image: prom/prometheus:latest
+    container_name: openstack-worker-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=1h'  # 로컬은 1시간만 보관
+      - '--web.enable-lifecycle'
+      - '--web.listen-address=0.0.0.0:9091'  # 기존 prometheus와 포트 충돌 방지
+    ports:
+      - "9091:9091"
+    volumes:
+      - ./openstack-worker-prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-worker-data:/prometheus
+    network_mode: host  # 기존 exporter들에 접근하기 위해 host 네트워크 사용
+    restart: unless-stopped
+    user: "0:0"  # root 권한으로 실행
+
+volumes:
+  prometheus-worker-data: 

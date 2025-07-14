@@ -1,0 +1,119 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'openstack'
+    environment: 'worker'
+
+# Remote write to Mimir with openstack tenant
+remote_write:
+  - url: http://192.168.1.100:9009/api/v1/push  # Mimir 마스터 IP로 변경 필요
+    headers:
+      X-Scope-OrgID: openstack
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+
+scrape_configs:
+  # 기존 OpenStack Node Exporter
+  - job_name: 'openstack-node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-node'
+
+  # 기존 OpenStack cAdvisor (Container metrics)
+  - job_name: 'openstack-cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-cadvisor'
+    # Container 메트릭의 과도한 라벨 제거
+    metric_relabel_configs:
+      # 불필요한 Docker 라벨들 제거
+      - regex: 'container_label_com_docker_.*'
+        action: labeldrop
+      - regex: 'container_label_org_opencontainers_.*'
+        action: labeldrop
+      - regex: 'container_label_maintainer'
+        action: labeldrop
+      - regex: 'container_label_build_date'
+        action: labeldrop
+      - regex: 'container_label_kolla_version'
+        action: labeldrop
+      # 긴 이미지 이름 단순화
+      - source_labels: [image]
+        regex: 'quay\.io/openstack\.kolla/(.+):.*'
+        target_label: kolla_service
+        replacement: '${1}'
+
+  # 기존 MySQL Exporter
+  - job_name: 'openstack-mysql-exporter'
+    static_configs:
+      - targets: ['localhost:9104']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-mysql'
+
+  # 기존 Memcached Exporter
+  - job_name: 'openstack-memcached-exporter'
+    static_configs:
+      - targets: ['localhost:9150']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-memcached'
+
+  # 기존 OpenStack Services Exporter
+  - job_name: 'openstack-services-exporter'
+    static_configs:
+      - targets: ['localhost:9180']
+    scrape_interval: 60s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-services'
+
+  # 기존 Blackbox Exporter
+  - job_name: 'openstack-blackbox-exporter'
+    static_configs:
+      - targets: ['localhost:9115']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-blackbox'
+
+  # 기존 Prometheus Server 자체 메트릭
+  - job_name: 'openstack-prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'openstack-prometheus'
+
+  # 새로운 워커 Prometheus 자체 메트릭
+  - job_name: 'prometheus-worker'
+    static_configs:
+      - targets: ['localhost:9091']  # 워커는 9091 포트 사용
+    scrape_interval: 30s
+    metrics_path: /metrics 
