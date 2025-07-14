@@ -10,6 +10,7 @@ datasources:
     isDefault: true
     version: 1
     editable: false
+    jsonData:
       httpHeaderName1: "X-Scope-OrgID"
       httpHeaderValue1: "demo"
     
@@ -22,8 +23,9 @@ datasources:
     isDefault: false
     version: 1
     editable: false
-    httpHeaderName1: "X-Scope-OrgID"
-    httpHeaderValue1: "prod"
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+      httpHeaderValue1: "prod"
     
   # 스테이징 테넌트
   - name: Mimir-Staging
@@ -34,8 +36,9 @@ datasources:
     isDefault: false
     version: 1
     editable: false
-    httpHeaderName1: "X-Scope-OrgID"
-    httpHeaderValue1: "staging"
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+      httpHeaderValue1: "staging"
     
   # 개발 테넌트
   - name: Mimir-Development
@@ -46,8 +49,9 @@ datasources:
     isDefault: false
     version: 1
     editable: false
+    jsonData:
       httpHeaderName1: "X-Scope-OrgID"
-    httpHeaderValue1: "dev"
+      httpHeaderValue1: "dev"
     
   # 전체 테넌트 통합 뷰 (관리자용)
   - name: Mimir-All-Tenants
