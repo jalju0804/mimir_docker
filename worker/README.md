@@ -43,23 +43,23 @@ sudo ./run-worker-node.sh
 source worker-node.env
 
 # 실행
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 4. 상태 확인
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 ### 5. 로그 확인
 ```bash
-docker-compose logs -f prometheus-agent
-docker-compose logs -f mysql
+docker compose logs -f prometheus-agent
+docker compose logs -f mysql
 ```
 
 ### 6. 중지
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## 🔗 접근 주소

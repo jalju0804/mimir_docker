@@ -64,7 +64,7 @@ cd master
 ./run-master.sh
 
 # 또는 수동 실행
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 2. 워커 노드 실행
@@ -79,7 +79,7 @@ vi worker-node.env  # WORKER_NODE_NAME, CENTRAL_MIMIR_URL 설정
 sudo ./run-worker-node.sh
 
 # 또는 수동 실행
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. 모니터링 확인

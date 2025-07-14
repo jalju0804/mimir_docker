@@ -22,7 +22,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if ! docker compose version &> /dev/null; then
     echo "❌ Docker Compose가 설치되어 있지 않습니다."
     exit 1
 fi
@@ -32,13 +32,13 @@ read -p "🧹 기존 컨테이너를 정리하시겠습니까? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "🧹 기존 컨테이너 정리..."
-    docker-compose down -v
+    docker compose down -v
     echo "✅ 정리 완료"
 fi
 
 # 마스터 노드 시작
 echo "🚀 마스터 노드 시작 중..."
-docker-compose up -d
+docker compose up -d
 
 # 서비스 시작 대기
 echo "⏳ 서비스 시작 대기 중 (30초)..."
@@ -46,7 +46,7 @@ sleep 30
 
 # 상태 확인
 echo "📋 컨테이너 상태 확인:"
-docker-compose ps
+docker compose ps
 
 # 헬스체크
 echo ""
@@ -82,10 +82,10 @@ echo "   💾 MinIO Console: http://localhost:19000 (mimir/supersecret)"
 
 echo ""
 echo "📝 유용한 명령어:"
-echo "   📋 상태 확인: docker-compose ps"
-echo "   📊 로그 확인: docker-compose logs -f [서비스명]"
-echo "   🛑 중지: docker-compose down"
-echo "   🔄 재시작: docker-compose restart [서비스명]"
+echo "   📋 상태 확인: docker compose ps"
+echo "   📊 로그 확인: docker compose logs -f [서비스명]"
+echo "   🛑 중지: docker compose down"
+echo "   🔄 재시작: docker compose restart [서비스명]"
 
 echo ""
 echo "✅ 마스터 노드가 성공적으로 시작되었습니다!"

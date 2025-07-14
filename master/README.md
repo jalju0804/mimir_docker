@@ -24,23 +24,23 @@
 ./run-master.sh
 
 # 또는 수동 실행
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 2. 상태 확인
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 ### 3. 로그 확인
 ```bash
-docker-compose logs -f mimir-1
-docker-compose logs -f grafana
+docker compose logs -f mimir-1
+docker compose logs -f grafana
 ```
 
 ### 4. 중지
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## 🔗 접근 주소
