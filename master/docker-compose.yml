@@ -164,12 +164,6 @@ services:
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-1-data:/data
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9009/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   mimir-2:
     image: grafana/mimir:latest
@@ -187,12 +181,6 @@ services:
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-2-data:/data
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9009/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   mimir-3:
     image: grafana/mimir:latest
@@ -210,12 +198,6 @@ services:
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - ./mimir-mixin-compiled/alerts.yaml:/etc/mimir/alerts.yaml:ro
       - mimir-3-data:/data
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9009/ready"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
 volumes:
   mimir-1-data:

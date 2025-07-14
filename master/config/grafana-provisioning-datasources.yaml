@@ -6,12 +6,17 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009
+    url: http://load-balancer:9009/prometheus
     isDefault: true
     version: 1
     editable: false
+    # 최신 Grafana 헤더 설정 방식
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
+      httpMethod: "GET"
+      timeInterval: "30s"
+      queryTimeout: "60s"
+    secureJsonData:
       httpHeaderValue1: "demo"
     
   # 프로덕션 테넌트
@@ -19,12 +24,16 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009
+    url: http://load-balancer:9009/prometheus
     isDefault: false
     version: 1
     editable: false
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
+      httpMethod: "GET"
+      timeInterval: "30s"
+      queryTimeout: "60s"
+    secureJsonData:
       httpHeaderValue1: "prod"
     
   # 스테이징 테넌트
@@ -32,12 +41,16 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009
+    url: http://load-balancer:9009/prometheus
     isDefault: false
     version: 1
     editable: false
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
+      httpMethod: "GET"
+      timeInterval: "30s"
+      queryTimeout: "60s"
+    secureJsonData:
       httpHeaderValue1: "staging"
     
   # 개발 테넌트
@@ -45,21 +58,14 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009
+    url: http://load-balancer:9009/prometheus
     isDefault: false
     version: 1
     editable: false
     jsonData:
       httpHeaderName1: "X-Scope-OrgID"
+      httpMethod: "GET"
+      timeInterval: "30s"
+      queryTimeout: "60s"
+    secureJsonData:
       httpHeaderValue1: "dev"
-    
-  # 전체 테넌트 통합 뷰 (관리자용)
-  - name: Mimir-All-Tenants
-    type: prometheus
-    access: proxy
-    orgId: 1
-    url: http://load-balancer:9009
-    isDefault: false
-    version: 1
-    editable: false
-    # 헤더 없이 설정하여 모든 테넌트 데이터 조회 (관리자 권한 필요)

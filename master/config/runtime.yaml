@@ -9,6 +9,7 @@ overrides:
     ingestion_burst_size: 400000
     compactor_blocks_retention_period: 90d
     max_query_parallelism: 20
+    max_label_names_per_series: 60
     
   # 스테이징 환경 테넌트  
   staging:
@@ -16,6 +17,7 @@ overrides:
     ingestion_burst_size: 100000
     compactor_blocks_retention_period: 7d
     max_query_parallelism: 10
+    max_label_names_per_series: 60
     
   # 개발 환경 테넌트
   dev:
@@ -23,6 +25,7 @@ overrides:
     ingestion_burst_size: 20000
     compactor_blocks_retention_period: 3d
     max_query_parallelism: 5
+    max_label_names_per_series: 60
     
   # 데모 테넌트 (기본 사용)
   demo:
@@ -30,3 +33,4 @@ overrides:
     ingestion_burst_size: 200000
     compactor_blocks_retention_period: 14d
     max_query_parallelism: 14 
+    max_label_names_per_series: 60

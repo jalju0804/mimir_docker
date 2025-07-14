@@ -1,79 +1,156 @@
-# Worker 노드 빠른 설정 가이드
+# Worker 노드 설정 가이드
 
-## 🚀 즉시 테스트하기
+이 가이드는 Container 메트릭의 라벨 제한 문제를 해결하기 위한 Worker 노드 설정 방법을 설명합니다.
 
-다른 서버에서 Master 노드가 실행 중이라면:
+## 🚨 현재 문제
 
-### 1. 테스트 메트릭 전송 (어디서든 실행 가능)
+Worker 노드에서 수집되는 Container 메트릭이 **30개 라벨 제한을 초과**하고 있습니다:
+- `container_blkio_device_usage_total`: 40개 라벨
+- `container_fs_reads_total`: 37개 라벨  
+- `container_tasks_state`: 37개 라벨
+
+## 🔧 해결 방법
+
+### 1. Prometheus 설정 업데이트
+
+Worker 노드의 `prometheus.yml` 파일을 `worker-prometheus-config.yaml` 내용으로 교체:
+
 ```bash
-# 서버 IP를 실제 Master 서버 IP로 변경하세요
-chmod +x quick-test-metrics.sh
-./quick-test-metrics.sh [MASTER_SERVER_IP]
+# Worker 노드에서 실행
+cp worker-prometheus-config.yaml /etc/prometheus/prometheus.yml
 
-# 예시:
-./quick-test-metrics.sh 192.168.1.100
+# MIMIR_HOST를 Master 노드 IP로 변경
+sed -i 's/MIMIR_HOST/YOUR_MASTER_IP/g' /etc/prometheus/prometheus.yml
+
+# Prometheus 재시작
+sudo systemctl restart prometheus
 ```
 
-### 2. Worker 노드 설정 (필요시)
+### 2. cAdvisor 라벨 필터링
 
-Worker 디렉토리로 이동:
+cAdvisor에서 직접 라벨을 제한하려면:
+
 ```bash
-cd ../worker
+# cAdvisor 실행 시 라벨 화이트리스트 추가
+docker run -d \
+  --name=cadvisor \
+  --restart=unless-stopped \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:ro \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --volume=/dev/disk/:/dev/disk:ro \
+  --publish=8080:8080 \
+  --privileged \
+  --device=/dev/kmsg \
+  gcr.io/cadvisor/cadvisor:latest \
+  --whitelisted_container_labels="name,image,io.kubernetes.container.name,io.kubernetes.pod.name"
 ```
 
-환경 파일 생성:
+### 3. 라벨 필터링 확인
+
+적용된 필터링이 작동하는지 확인:
+
 ```bash
-cp worker-node.env.example worker-node.env
+# 현재 메트릭의 라벨 수 확인
+curl -s http://localhost:8080/metrics | grep "container_blkio_device_usage_total" | head -1 | tr ',' '\n' | wc -l
+
+# 30개 이하여야 함
 ```
 
-환경 파일 수정:
+## 📊 Master 노드에서 확인
+
+### 1. Mimir 라벨 제한 설정 확인
+
 ```bash
-# worker-node.env 파일에서 다음 값들 수정:
-WORKER_NODE_NAME=worker-node-1
-CENTRAL_MIMIR_URL=http://[MASTER_SERVER_IP]:9009
-TENANT_ID=demo
+# Master 노드에서 실행
+grep "max_label_names_per_series" config/mimir.yaml
+# 출력: max_label_names_per_series: 100
 ```
 
-Worker 노드 실행:
+### 2. Runtime 설정 확인
+
 ```bash
-./run-worker-node.sh
+# Runtime configuration 확인
+grep "max_label_names_per_series" config/runtime.yaml
 ```
 
-## 📊 Grafana에서 확인하기
+### 3. 서비스 재시작 및 확인
 
-1. **Grafana 접속**: http://[MASTER_SERVER_IP]:9000
-2. **Explore 탭** 클릭
-3. **데이터소스 선택**: Mimir-Demo
-4. **메트릭 쿼리 테스트**:
-   ```promql
-   # 테스트 메트릭
-   test_cpu_usage
-   test_memory_usage
-   test_requests_total
-   
-   # 실제 시스템 메트릭 (Worker 노드 실행 후)
-   up
-   node_cpu_seconds_total
-   node_memory_MemTotal_bytes
-   ```
+```bash
+# Master 노드에서 실행
+chmod +x fix-mimir-issues.sh
+./fix-mimir-issues.sh
+```
 
-## 🔧 문제 해결
+## 🏷️ 유지할 주요 라벨
 
-### 데이터가 안 보이는 경우:
-1. Master 서비스 상태 확인
-2. 테스트 메트릭 전송 시도
-3. 데이터소스 연결 테스트
-4. Worker 노드 로그 확인
+Container 메트릭에서 유지해야 할 필수 라벨들:
 
-### 즉시 확인 가능한 메트릭:
-- `test_cpu_usage`: CPU 사용률 테스트
-- `test_memory_usage`: 메모리 사용률 테스트  
-- `test_requests_total`: 요청 수 테스트
-- `test_active_users`: 활성 사용자 수 테스트
+- `__name__`: 메트릭 이름
+- `job`: Prometheus job 이름  
+- `instance`: 인스턴스 주소
+- `id`: Container ID
+- `name`: Container 이름
+- `image`: Container 이미지
+- `container`: Container 이름 (K8s)
+- `pod`: Pod 이름 (K8s)
+- `namespace`: Namespace (K8s)
+- `cluster`: 클러스터 이름
 
-### 차트 생성용 쿼리:
-```promql
-rate(test_requests_total[5m])
-avg_over_time(test_cpu_usage[10m])
-increase(test_requests_total[1h])
+## 🔍 제거되는 라벨들
+
+다음 라벨들은 자동으로 제거됩니다:
+
+- `container_label_com_docker_compose_*`: Docker Compose 라벨
+- `container_label_*_build_*`: Build 관련 라벨
+- `container_label_architecture`: Architecture 정보
+- `container_label_*_config_hash`: Config hash
+- `container_label_*_version`: Version 정보
+- `container_label_org_opencontainers_*`: OCI 라벨
+
+## ✅ 검증 방법
+
+### 1. 라벨 수 확인
+
+```bash
+# Worker 노드에서 확인
+curl -s http://localhost:9090/api/v1/label/__name__/values | jq -r '.data[]' | grep container_ | head -5
+
+# Master 노드에서 확인 (Mimir)
+curl -s http://localhost:9009/prometheus/api/v1/label/__name__/values | jq -r '.data[]' | grep container_ | head -5
+```
+
+### 2. 메트릭 수집 상태 확인
+
+```bash
+# Mimir 로그에서 라벨 제한 오류 확인
+docker-compose logs mimir-1 | grep "max-label-names-per-series"
+```
+
+### 3. Grafana에서 확인
+
+1. Grafana 접속: http://MASTER_IP:9000
+2. Explore → Demo datasource 선택
+3. 쿼리: `container_memory_usage_bytes`
+4. 메트릭이 정상적으로 표시되는지 확인
+
+## 🚨 주의사항
+
+1. **데이터 손실**: 라벨 필터링으로 일부 메타데이터가 제거됩니다
+2. **호환성**: 기존 대시보드에서 제거된 라벨을 사용하는 경우 수정이 필요합니다
+3. **모니터링**: 정기적으로 라벨 수를 모니터링하여 제한을 초과하지 않도록 해야 합니다
+
+## 📞 문제 해결
+
+라벨 제한 문제가 계속 발생하는 경우:
+
+1. Runtime configuration 재확인
+2. Prometheus relabeling 규칙 검증
+3. cAdvisor 재시작
+4. Mimir 로그 분석
+
+```bash
+# 상세 로그 확인
+docker-compose logs -f mimir-1 | grep -E "(label|push|error)"
 ``` 
