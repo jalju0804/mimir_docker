@@ -117,7 +117,8 @@ remote_write:
     queue_config:
       max_samples_per_send: 1000
       batch_send_deadline: 10s
-      max_retries: 3
+      max_shards: 200
+      min_shards: 1
       min_backoff: 1s
       max_backoff: 30s
     write_relabel_configs:
