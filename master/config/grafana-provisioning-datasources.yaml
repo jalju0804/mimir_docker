@@ -6,7 +6,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://nginx:8080/prometheus
+    url: http://load-balancer:9009
     isDefault: true
     version: 1
     editable: false
@@ -19,7 +19,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://nginx:8080/prometheus
+    url: http://load-balancer:9009
     isDefault: false
     version: 1
     editable: false
@@ -32,7 +32,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://nginx:8080/prometheus
+    url: http://load-balancer:9009
     isDefault: false
     version: 1
     editable: false
@@ -45,7 +45,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://nginx:8080/prometheus
+    url: http://load-balancer:9009
     isDefault: false
     version: 1
     editable: false
@@ -58,7 +58,7 @@ datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://nginx:8080/prometheus
+    url: http://load-balancer:9009
     isDefault: false
     version: 1
     editable: false
