@@ -47,7 +47,7 @@ docker compose down
 
 - **Grafana**: http://localhost:9000
 - **Mimir API**: http://localhost:9009
-- **Alertmanager**: http://localhost:9093
+- **Alertmanager**: http://localhost:9093 (외부 독립 컨테이너)
 - **MinIO Console**: http://localhost:19000
 
 ## 📊 워커 노드 연결
@@ -61,4 +61,5 @@ docker compose down
 - **중앙집중식 저장**: 모든 워커 노드 메트릭이 Mimir에 저장
 - **고가용성**: 3개의 Mimir 인스턴스로 클러스터 구성
 - **확장성**: 워커 노드 추가 시 중앙 설정 변경 불필요
-- **통합 대시보드**: 모든 노드의 메트릭을 하나의 Grafana에서 조회 
+- **통합 대시보드**: 모든 노드의 메트릭을 하나의 Grafana에서 조회
+- **분리된 알림**: Alertmanager가 Mimir와 독립적으로 실행되어 유연한 알림 관리 

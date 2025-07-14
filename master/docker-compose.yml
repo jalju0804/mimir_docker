@@ -133,8 +133,6 @@ services:
       retries: 5
       start_period: 10s
 
-
-
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
@@ -159,6 +157,7 @@ services:
     hostname: mimir-1
     depends_on:
       - minio
+      - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
@@ -180,6 +179,7 @@ services:
     hostname: mimir-2
     depends_on:
       - minio
+      - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
@@ -201,6 +201,7 @@ services:
     hostname: mimir-3
     depends_on:
       - minio
+      - alertmanager
     volumes:
       - ./config/mimir.yaml:/etc/mimir.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml

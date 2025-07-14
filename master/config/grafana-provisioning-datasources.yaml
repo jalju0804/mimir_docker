@@ -1,29 +1,61 @@
 apiVersion: 1
 
 datasources:
-  - name: Mimir
+  # 기본 데이터소스 (demo 테넌트)
+  - name: Mimir-Demo
     type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009/prometheus
-    version: 1
-    editable: true
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-      alertmanagerUid: "alertmanager"
-    secureJsonData:
-      httpHeaderValue1: "demo"
+    url: http://nginx:8080/prometheus
     isDefault: true
-  - name: Mimir Alertmanager
-    uid: alertmanager
-    type: alertmanager
+    version: 1
+    editable: false
+    httpHeaderName1: "X-Scope-OrgID"
+    httpHeaderValue1: "demo"
+    
+  # 프로덕션 테넌트
+  - name: Mimir-Production
+    type: prometheus
     access: proxy
     orgId: 1
-    url: http://load-balancer:9009/
+    url: http://nginx:8080/prometheus
+    isDefault: false
     version: 1
-    editable: true
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-      implementation: "cortex"
-    secureJsonData:
-      httpHeaderValue1: "demo"
+    editable: false
+    httpHeaderName1: "X-Scope-OrgID"
+    httpHeaderValue1: "prod"
+    
+  # 스테이징 테넌트
+  - name: Mimir-Staging
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://nginx:8080/prometheus
+    isDefault: false
+    version: 1
+    editable: false
+    httpHeaderName1: "X-Scope-OrgID"
+    httpHeaderValue1: "staging"
+    
+  # 개발 테넌트
+  - name: Mimir-Development
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://nginx:8080/prometheus
+    isDefault: false
+    version: 1
+    editable: false
+    httpHeaderName1: "X-Scope-OrgID"
+    httpHeaderValue1: "dev"
+    
+  # 전체 테넌트 통합 뷰 (관리자용)
+  - name: Mimir-All-Tenants
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://nginx:8080/prometheus
+    isDefault: false
+    version: 1
+    editable: false
+    # 헤더 없이 설정하여 모든 테넌트 데이터 조회 (관리자 권한 필요)

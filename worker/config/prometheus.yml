@@ -113,7 +113,7 @@ scrape_configs:
 remote_write:
   - url: "${CENTRAL_MIMIR_URL}/api/v1/push"
     headers:
-      X-Scope-OrgID: demo
+      X-Scope-OrgID: "${TENANT_ID:-demo}"
     queue_config:
       max_samples_per_send: 1000
       batch_send_deadline: 10s
