@@ -19,6 +19,23 @@ datasources:
     secureJsonData:
       httpHeaderValue1: "demo"
     
+  # OpenStack 워커 노드 테넌트 (새로 추가)
+  - name: Mimir-OpenStack
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://load-balancer:9009/prometheus
+    isDefault: false
+    version: 1
+    editable: false
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+      httpMethod: "GET"
+      timeInterval: "30s"
+      queryTimeout: "60s"
+    secureJsonData:
+      httpHeaderValue1: "openstack"
+    
   # 프로덕션 테넌트
   - name: Mimir-Production
     type: prometheus
