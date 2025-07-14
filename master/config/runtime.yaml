@@ -3,7 +3,7 @@
 
 # 테넌트별 제한사항 오버라이드
 overrides:
-  # OpenStack 워커 노드 테넌트 (새로 추가)
+  # OpenStack 워커 노드 테넌트
   openstack:
     ingestion_rate: 15000
     ingestion_burst_size: 300000
@@ -13,32 +13,8 @@ overrides:
     max_global_series_per_user: 2000000
     max_global_series_per_metric: 100000
     
-  # 프로덕션 환경 테넌트
-  prod:
-    ingestion_rate: 20000
-    ingestion_burst_size: 400000
-    compactor_blocks_retention_period: 90d
-    max_query_parallelism: 20
-    max_label_names_per_series: 60
-    
-  # 스테이징 환경 테넌트  
-  staging:
-    ingestion_rate: 5000
-    ingestion_burst_size: 100000
-    compactor_blocks_retention_period: 7d
-    max_query_parallelism: 10
-    max_label_names_per_series: 50
-    
-  # 개발 환경 테넌트
-  dev:
-    ingestion_rate: 1000
-    ingestion_burst_size: 20000
-    compactor_blocks_retention_period: 3d
-    max_query_parallelism: 5
-    max_label_names_per_series: 40
-    
-  # 데모 테넌트 (기본 사용)
-  demo:
+  # 모니터링 테넌트 (기본 사용)
+  monitoring:
     ingestion_rate: 10000
     ingestion_burst_size: 200000
     compactor_blocks_retention_period: 14d

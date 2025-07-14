@@ -1,8 +1,8 @@
 apiVersion: 1
 
 datasources:
-  # 기본 데이터소스 (demo 테넌트)
-  - name: Mimir-Demo
+  # 기본 데이터소스 (monitoring 테넌트)
+  - name: Mimir-Monitoring
     type: prometheus
     access: proxy
     orgId: 1
@@ -17,9 +17,9 @@ datasources:
       timeInterval: "30s"
       queryTimeout: "60s"
     secureJsonData:
-      httpHeaderValue1: "demo"
+      httpHeaderValue1: "monitoring"
     
-  # OpenStack 워커 노드 테넌트 (새로 추가)
+  # OpenStack 워커 노드 테넌트
   - name: Mimir-OpenStack
     type: prometheus
     access: proxy
@@ -35,54 +35,3 @@ datasources:
       queryTimeout: "60s"
     secureJsonData:
       httpHeaderValue1: "openstack"
-    
-  # 프로덕션 테넌트
-  - name: Mimir-Production
-    type: prometheus
-    access: proxy
-    orgId: 1
-    url: http://load-balancer:9009/prometheus
-    isDefault: false
-    version: 1
-    editable: false
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-      httpMethod: "GET"
-      timeInterval: "30s"
-      queryTimeout: "60s"
-    secureJsonData:
-      httpHeaderValue1: "prod"
-    
-  # 스테이징 테넌트
-  - name: Mimir-Staging
-    type: prometheus
-    access: proxy
-    orgId: 1
-    url: http://load-balancer:9009/prometheus
-    isDefault: false
-    version: 1
-    editable: false
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-      httpMethod: "GET"
-      timeInterval: "30s"
-      queryTimeout: "60s"
-    secureJsonData:
-      httpHeaderValue1: "staging"
-    
-  # 개발 테넌트
-  - name: Mimir-Development
-    type: prometheus
-    access: proxy
-    orgId: 1
-    url: http://load-balancer:9009/prometheus
-    isDefault: false
-    version: 1
-    editable: false
-    jsonData:
-      httpHeaderName1: "X-Scope-OrgID"
-      httpMethod: "GET"
-      timeInterval: "30s"
-      queryTimeout: "60s"
-    secureJsonData:
-      httpHeaderValue1: "dev"
